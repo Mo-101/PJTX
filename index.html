@@ -5,8 +5,7 @@
 	<meta charset="utf-8">
 	<title>Determinants of Lassa fever MN possible habitat</title>
 	<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-	<link href="https://api.mapbox.com/mapbox-gl-js/v2.11.0/mapbox-gl.css" rel="stylesheet">
-	<!-- <script src="https://api.mapbox.com/mapbox-gl-js/v2.11.0/mapbox-gl.js"></script> -->
+	<link href="https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.css" rel="stylesheet">
 	<style>
 		body {
 			margin: 0;
@@ -25,29 +24,34 @@
 <body>
 	<style>
 		#map {
-		position: fixed;
-		width: 80%;
+			position: fixed;
+			width: 80%;
 		}
+
 		#features {
-		width: 20%;
-		margin-left: 80%;
-		font-family: sans-serif; color: hsl(69, 92%, 46%);
-		overflow-y: scroll;
-		background-color: #2E378C;
+			width: 20%;
+			margin-left: 80%;
+			font-family: sans-serif;
+			color: white;
+			overflow-y: auto;
+			background-color: #2E378C;
 		}
+
 		section {
-		padding: 15px 15px;
-		line-height: 25px;
-		border-bottom: 6px solid hsl(235, 12%, 82%);
-		opacity: 0.15;
-		font-size: 8px, 1rem;
+			padding: 15px 15px;
+			line-height: 25px;
+			border-bottom: 6px solid hsl(235, 12%, 82%);
+			opacity: 0.15;
+			font-size: 8px, 1rem;
 		}
+
 		section.active {
-		opacity: 1;
+			opacity: 1;
 		}
+
 		section:last-child {
-		border-bottom: none;
-		margin-bottom: 80vh;
+			border-bottom: none;
+			margin-bottom: 80vh;
 		}
 	</style>
 
@@ -56,7 +60,7 @@
 
 		<section id="nigeria" class="active">
 			<h3> Determinant of lassa fever epidemioloy
-					2018 - 2021 Analysis</h3>
+				2018 - 2021 Analysis</h3>
 			<p>
 				Mastomys natalensis possible habitat areas
 				along Niger & Benue River Inland-Shoreline
@@ -66,7 +70,7 @@
 		<section id="ilushi">
 			<h3>Ilushi - Edo State</h3>
 			<p>
-				Built up area in Edo State, Esan North-West 
+				Built up area in Edo State, Esan North-West
 				with more than 100 confirmed cases
 			</p>
 		</section>
@@ -118,8 +122,8 @@
 		<section id="loko">
 			<h3>Loko, Nassarawa</h3>
 			<p>
-				Mycroft responds to Sherlock's 
-			
+				Mycroft responds to Sherlock's
+
 			</p>
 		</section>
 
@@ -160,16 +164,17 @@
 
 	</div>
 	<script src="js/qgis2web_expressions.js"></script>
-        <script src="./mapbox/mapbox-gl.js"></script>
-		
+	<script src="./mapbox/mapbox-gl.js"></script>
+
 	<script src="./mapbox/style.js"></script>
 	<script src="./js/Autolinker.min.js"></script>
-
+	<script src="https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.js"></script>
+	
 	<script>
 		// TO MAKE THE MAP APPEAR YOU MUST
 		// ADD YOUR ACCESS TOKEN FROM
 		// https://account.mapbox.com
-		mapboxgl.accessToken = window.localStorage.getItem('MapboxAccessToken','pk.eyJ1IjoiYWthbmltbzEiLCJhIjoiY2w5ODU2cjR2MDR3dTNxcXRpdG5jb3Z6dyJ9.vi2wspa-B9a9gYYWMpEm0A');
+		// mapboxgl.accessToken = window.localStorage.getItem('MapboxAccessToken', 'pk.eyJ1IjoiYWthbmltbzEiLCJhIjoiY2w5ODU2cjR2MDR3dTNxcXRpdG5jb3Z6dyJ9.vi2wspa-B9a9gYYWMpEm0A');
 		mapboxgl.accessToken = 'pk.eyJ1IjoiYWthbmltbzEiLCJhIjoiY2w5ODU2cjR2MDR3dTNxcXRpdG5jb3Z6dyJ9.vi2wspa-B9a9gYYWMpEm0A';
 		// const map = new mapboxgl.Map({
 		// 	container: 'map',
@@ -192,19 +197,19 @@
 
 		map.on('style.load', () => {
 			map.addSource('mapbox-dem', {
-			'type': 'raster-dem',
-			'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-			'tileSize': 512,
-			'maxzoom': 14
+				'type': 'raster-dem',
+				'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+				'tileSize': 512,
+				'maxzoom': 14
 			});
 			// add the DEM source as a terrain layer with exaggerated height
-			map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 3});
-			});
+			map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1 });
+		});
 
 		const chapters = {
 			'nigeria': {
 				duration: 50,
-				center: [9.0820,8.6753],
+				center: [9.0820, 8.6753],
 				bearing: 0,
 				zoom: 0,
 				pitch: 0
@@ -212,10 +217,13 @@
 
 			'ilushi': {
 				bearing: 230,
-				center: [6.631255,6.669366],
+				center: [6.631255, 6.669366],
 				zoom: 17,
 				speed: 0.3,
-				pitch: 50
+				pitch: 50,
+				popupText : new mapboxgl.Popup({ offset: 25 }).setText(`State: Edo State; >LGA: Esan South-East; 
+				Village: Illushi; Population: 7,340 (2016); 
+				Terrain: Tropical savanna, wet, Occupation: Farming (Crops like Casava & Yam) Confirmed case: 20`)
 			},
 
 			'agenebode': {
@@ -223,225 +231,161 @@
 				center: [6.691843, 7.106429],
 				zoom: 15,
 				speed: 0.3,
-				pitch: 45
+				pitch: 45,
+				popupText : new mapboxgl.Popup({ offset: 25 }).setText(`State: Edo State; LGA: Esan South-East; 
+				Village: Agenebode; Population: 7,340 (2016); 
+				Terrain: Tropical savanna, wet, Occupation: Farming (Crops like Casava & Yam) Confirmed case: 20`)
 			},
 
 			'idah': {
 				bearing: 110,
-				center: [6.727696,7.106738],
+				center: [6.727696, 7.106738],
 				zoom: 15.5,
 				speed: 0.3,
-				pitch: 45
+				pitch: 45,
+				popupText : new mapboxgl.Popup({ offset: 25 }).setText(`State: Edo State; LGA: Esan South-East; 
+				Village: Illushi; Population: 7,340 (2016); 
+				Terrain: Tropical savanna, wet, Occupation: Farming (Crops like Casava & Yam) Confirmed case: 20`)
+
 			},
 
 			'itobe': {
 				bearing: 90,
-				center: [6.713540,7.412357],
+				center: [6.713540, 7.412357],
 				zoom: 16.5,
 				speed: 0.3,
-				pitch: 50
+				pitch: 50,
+				popupText : new mapboxgl.Popup({ offset: 25 }).setText(`State: Edo State; \nLGA: Esan South-East; 
+				Village: Illushi; Population: 7,340 (2016); 
+				Terrain: Tropical savanna, wet, Occupation: Farming (Crops like Casava & Yam) Confirmed case: 20`)
+
 			},
 
 			'lokoja': {
 				bearing: 280,
-				center: [6.747502,7.797786],
+				center: [6.747502, 7.797786],
 				zoom: 16.5,
 				speed: 0.3,
-				pitch: 35
+				pitch: 35,
+				popupText : new mapboxgl.Popup({ offset: 25 }).setText(`State: Edo State; LGA: Esan South-East; 
+				Village: Illushi; Population: 7,340 (2016); 
+				Terrain: Tropical savanna, wet, Occupation: Farming (Crops like Casava & Yam) Confirmed case: 20`)
+
 			},
-			
+
 			'zugbe': {
 				bearing: 150,
-				center: [7.249016,8.008789],
+				center: [7.249016, 8.008789],
 				zoom: 17,
 				speed: 0.4,
-				pitch: 55
+				pitch: 55,
+				popupText : new mapboxgl.Popup({ offset: 25 }).setText(`State: Edo State; LGA: Esan South-East; 
+				Village: Illushi; Population: 7,340 (2016); 
+				Terrain: Tropical savanna, wet, Occupation: Farming (Crops like Casava & Yam) Confirmed case: 20`)
+
 			},
-			
+
 			'bagana': {
 				bearing: 200,
-				center: [7.596399,8.030839],
+				center: [7.596399, 8.030839],
 				zoom: 16.5,
 				speed: 0.3,
-				pitch: 45
+				pitch: 45,
+				popupText : new mapboxgl.Popup({ offset: 25 }).setText(`State: Edo State; LGA: Esan South-East; 
+				Village: Illushi; Population: 7,340 (2016); 
+				Terrain: Tropical savanna, wet, Occupation: Farming (Crops like Casava & Yam) Confirmed case: 20`)
+
 			},
 
 			'loko': {
 				bearing: 350,
-				center: [7.842589,7.995965],
+				center: [7.842589, 7.995965],
 				zoom: 16,
 				speed: 0.3,
-				pitch: 45
+				pitch: 45,
+				popupText : new mapboxgl.Popup({ offset: 25 }).setText(`State: Edo State; LGA: Esan South-East; 
+				Village: Illushi; Population: 7,340 (2016); 
+				Terrain: Tropical savanna, wet, Occupation: Farming (Crops like Casava & Yam) Confirmed case: 20`)
+
 			},
 
 			'makurdi': {
 				bearing: 210,
-				center: [8.540207,7.737422],
+				center: [8.540207, 7.737422],
 				zoom: 15,
 				speed: 0.3,
-				pitch: 45
+				pitch: 45,
+				popupText : new mapboxgl.Popup({ offset: 25 }).setText(`State: Edo State; LGA: Esan South-East; 
+				Village: Illushi; Population: 7,340 (2016); 
+				Terrain: Tropical savanna, wet, Occupation: Farming (Crops like Casava & Yam) Confirmed case: 20`)
+
 			},
 
 			'makurdi north': {
 				bearing: 40,
-				center: [8.548938,7.742094],
+				center: [8.548938, 7.742094],
 				zoom: 16,
 				speed: 0.3,
-				pitch: 35
+				pitch: 35,
+				popupText : new mapboxgl.Popup({ offset: 25 }).setText(`State: Edo State; LGA: Esan South-East; 
+				Village: Illushi; Population: 7,340 (2016); 
+				Terrain: Tropical savanna, wet, Occupation: Farming (Crops like Casava & Yam) Confirmed case: 20`)
+
 			},
 
 			'gbajimba': {
 				bearing: 350,
-				center: [8.861989,7.813916],
+				center: [8.861989, 7.813916],
 				zoom: 16,
 				speed: 0.3,
-				pitch: 45
+				pitch: 45,
+				popupText : new mapboxgl.Popup({ offset: 25 }).setText(`State: Edo State; LGA: Esan South-East; 
+				Village: Illushi; Population: 7,340 (2016); 
+				Terrain: Tropical savanna, wet, Occupation: Farming (Crops like Casava & Yam) Confirmed case: 20`)
+
 			},
 
 			'chinka': {
 				bearing: 170,
-				center: [9.423668,8.029803],
+				center: [9.423668, 8.029803],
 				zoom: 16.5,
 				speed: 0.3,
-				pitch: 45
+				pitch: 45,
+				popupText : new mapboxgl.Popup({ offset: 25 }).setText(`State: Edo State; LGA: Esan South-East; 
+				Village: Illushi; Population: 7,340 (2016); 
+				Terrain: Tropical savanna, wet, Occupation: Farming (Crops like Casava & Yam) Confirmed case: 20`)
+
 			},
 
 			'ibi': {
 				bearing: 180,
-				center: [9.741507,8.187417],
+				center: [9.741507, 8.187417],
 				zoom: 16,
 				speed: 0.3,
-				pitch: 35
-			},	
+				pitch: 35,
+				popupText : new mapboxgl.Popup({ offset: 25 }).setText(`State: Edo State; LGA: Esan South-East; 
+				Village: Illushi; Population: 7,340 (2016); 
+				Terrain: Tropical savanna, wet, Occupation: Farming (Crops like Casava & Yam) Confirmed case: 20`)
+
+			},
 		};
-			// create the popup
-			const popup1 = new mapboxgl.Popup({ offset: 25 }).setText(
-			'Illushi, Esan North East LGA, Edo State'
-			);
-
-			const popup2 = new mapboxgl.Popup({ offset: 25 }).setText(
-			'Agenebode, Etsako East LGA, Edo State'
-			);
-
-			const popup3 = new mapboxgl.Popup({ offset: 25 }).setText(
-			'Idah LGA, Kogi State'
-			);
-
-			const popup4 = new mapboxgl.Popup({ offset: 25 }).setText(
-			'Itobe, Benue State'
-			);
-
-			const popup5 = new mapboxgl.Popup({ offset: 25 }).setText(
-			'Lokoja, Kogi State'
-			);
-
-			const popup6 = new mapboxgl.Popup({ offset: 25 }).setText(
-			'Zugbe, Benue State'
-			);
-
-			const popup7 = new mapboxgl.Popup({ offset: 25 }).setText(
-			'Bagana, Kogi State'
-			);
-
-			const popup8 = new mapboxgl.Popup({ offset: 25 }).setText(
-			'Loko, Nassarawa State'
-			);
-
-			const popup9 = new mapboxgl.Popup({ offset: 25 }).setText(
-			'Makurdi, Benue State'
-			);
-
-			const popup10 = new mapboxgl.Popup({ offset: 25 }).setText(
-			'Makurdi North, Benue State'
-			);
-
-			const popup11 = new mapboxgl.Popup({ offset: 25 }).setText(
-			'Gbajimba, Benue State'
-			);
-
-			const popup12 = new mapboxgl.Popup({ offset: 25 }).setText(
-			'Chinka, Taraba State'
-			);
-
-			const popup13 = new mapboxgl.Popup({ offset: 25 }).setText(
-			'Ibi, Taraba State'
-			);
-
-			// Create a default Marker and add it to the map.
-			const marker1 = new mapboxgl.Marker()
-			.setLngLat([6.631255,6.669366])
-			.setPopup(popup1)
-			.addTo(map);
-			
-			// Create a default Marker, colored black, rotated 45 degrees.
-			const marker2 = new mapboxgl.Marker({ color: 'black', rotation: 45, chapterName: "Illushi"})
-			.setLngLat([6.691843, 7.106429])
-			.setPopup(popup2)
-			.addTo(map);
-
-			const marker3 = new mapboxgl.Marker({ color: 'green', rotation: 45 })
-			.setLngLat([6.727696,7.106738])
-			.setPopup(popup3)
-			.addTo(map);
-
-			const marker4 = new mapboxgl.Marker({ color: 'red', rotation: 45 })
-			.setLngLat([6.713540,7.412357])
-			.setPopup(popup4)
-			.addTo(map);
-
-			const marker5 = new mapboxgl.Marker({ color: 'yellow', rotation: 45 })
-			.setLngLat([6.747502,7.797786])
-			.setPopup(popup5)
-			.addTo(map);
-
-			const marker6 = new mapboxgl.Marker({ color: 'pink', rotation: 45 })
-			.setLngLat([7.249016,8.008789])
-			.setPopup(popup6)
-			.addTo(map);
-
-			const marker7 = new mapboxgl.Marker({ color: 'gray', rotation: 45 })
-			.setLngLat([7.596399,8.030839])
-			.setPopup(popup7)
-			.addTo(map);
-
-			const marker8 = new mapboxgl.Marker({ color: 'orange', rotation: 45 })
-			.setLngLat([7.842589,7.995965])
-			.setPopup(popup8)
-			.addTo(map);
-
-			const marker9 = new mapboxgl.Marker({ color: 'cyan', rotation: 45 })
-			.setLngLat([8.540207,7.737422])
-			.setPopup(popup9)
-			.addTo(map);
-
-			const marker10 = new mapboxgl.Marker({ color: 'white', rotation: 45 })
-			.setLngLat([8.548938,7.742094])
-			.setPopup(popup10)
-			.addTo(map);
-
-			const marker11 = new mapboxgl.Marker({ color: 'lemon', rotation: 45 })
-			.setLngLat([8.861989,7.813916])
-			.setPopup(popup11)
-			.addTo(map);
-
-			const marker12 = new mapboxgl.Marker({ color: 'turquoise', rotation: 45 })
-			.setLngLat([9.423668,8.029803])
-			.setPopup(popup12)
-			.addTo(map);
-
-			const marker13 = new mapboxgl.Marker({ color: 'violet', rotation: 45 })
-			.setLngLat([9.741507,8.187417])
-			.setPopup(popup13)
-			.addTo(map);
 
 		let activeChapterName = 'free';
+
 		function setActiveChapter(chapterName) {
 			if (chapterName === activeChapterName) return;
 
 			map.flyTo(chapters[chapterName]);
 
+			new mapboxgl.Marker({ color: 'red', rotation: 45 })
+			.setLngLat(chapters[chapterName].center)
+			.setPopup(chapters[chapterName].popupText)
+			.addTo(map);
+
+
+
 			document.getElementById(chapterName).classList.add('active');
-			document.getElementById(activeChapterName).classList.remove('active');
+			//document.getElementById(activeChapterName).classList.remove('active');
 
 			activeChapterName = chapterName;
 		}
@@ -455,12 +399,16 @@
 		// On every scroll event, check which element is on screen
 		window.onscroll = () => {
 			for (const chapterName in chapters) {
-				if (isElementOnScreen(chapterName)) {
-					setActiveChapter(chapterName);
-					break;
+				if(chapterName != 'nigeria'){
+					if (isElementOnScreen(chapterName)) {
+						setActiveChapter(chapterName);
+						break;
+					}
 				}
+				
 			}
 		};
 	</script>
 </body>
+
 </html>
