@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Display a map on a webpage</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.js"></script>
+    <style>
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+    }
+    #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+    }
+    #nav-menu {
+        position: fixed;
+        top: 0px;
+        left: 0px;
+        right: 0px;
+        height: 34px;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        border-radius: 10px;
+        box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: left;
+        gap: 10px;
+        color: white;
+        max-width: calc(100% - 20px);
+        overflow: hidden;
+        z-index: 1;
+    }
+    .nav-item {
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        color: white;
+        cursor: pointer;
+        box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        font-size: 14px;
+        text-align: center;
+    }
+    .nav-item:hover {
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.2);
+        transform: translateY(-2px);
+    }
+    .nav-item:active {
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        transform: translateY(0);
+    }
+    h2, h3 {
+        margin: 10px;
+        font-size: 18px;
+    }
+    h3 {
+        font-size: 16px;
+    }
+    p {
+        margin: 10px;
+    }
+    .map-overlay {
+        position: absolute;
+        top: 50px; /* Adjust this value to move below the nav-menu */
+        right: 10px;
+        background: rgba(255, 255, 255, 0.8); /* Transparent glass background */
+        margin: 10px;
+        font-family: Arial, sans-serif;
+        border-radius: 3px;
+        padding: 10px;
+        box-shadow: 0 1px 2px rgb(0 0 0 / 10%);
+        max-width: 300px;
+        height: auto; /* Ensures height is adjusted based on content */
+        overflow: visible;
+        backdrop-filter: blur(10px); /* Optional: adds a glass-like blur effect */
+    }
+    #features {
+        max-height: 400px; /* Increase the height to accommodate all content */
+        width: 300px;
+    }
+    #legend {
+        position: bottom;
+        width: 200px;
+    }
+    .legend-key {
+        display: inline-block;
+        border-radius: 20%;
+        width: 10px;
+        height: 10px;
+        margin-right: 5px;
+    }
+    .gradient-bar {
+        display: flex;
+        height: 20px; /* Increase the height for better 3D effect */
+        margin: 5px 0;
+        border-radius: 5px;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), inset 0 -1px 0 rgba(0, 0, 0, 0.2); /* 3D effect */
+        overflow: hidden;
+    }
+    .gradient-bar > div {
+        flex: 1;
+        transition: flex 0.3s ease;
+    }
+    .gradient-bar > .advanced {
+        background: linear-gradient(to bottom, #00FF00, #009900); /* 3D gradient */
+    }
+    .gradient-bar > .intermediate {
+        background: linear-gradient(to bottom, #FFFF00, #CCCC00); /* 3D gradient */
+    }
+    .gradient-bar > .basic {
+        background: linear-gradient(to bottom, #0000FF, #000099); /* 3D gradient */
+    }
+    .gradient-bar > .inadequate {
+        background: linear-gradient(to bottom, #FF0000, #990000); /* 3D gradient */
+    }
+    </style>
+</head>
+
+<body>
+    <div id="nav-menu">
+        <a href="Home.html" class="nav-item">Home</a>
+    </div>
+    <div id="map"></div>
+    <div class="map-overlay" id="features">
+        <h2>IPC Level Readiness</h2>
+        <div id="pd">
+            <p>Hover over an area!</p>
+        </div>
+    </div>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiYWthbmltbzEiLCJhIjoiY2x4czNxbjU2MWM2eTJqc2gwNGIwaWhkMSJ9.jSwZdyaPa1dOHepNU5P71g';
+        const map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/akanimo1/clxyfobxi001501qrccvi91xk',
+            center: [3.9050605, 7.38691745],
+            pitch: 45,
+            zoom: 12
+        });
+
+        fetch('data/points.json')
+            .then(response => response.json())
+            .then(data => {
+                const lgaSummaries = calculateLGASummaries(data);
+
+                map.addSource('facilities', {
+                    type: 'geojson',
+                    data: data
+                });
+
+                map.addLayer({
+                    'id': 'ipclevel',
+                    'type': 'circle',
+                    'source': 'facilities',
+                    'paint': {
+                        'circle-color': [
+                            'match',
+                            ['get', 'Level of IPC Readiness'],
+                            'Advanced', '#00FF00',
+                            'Intermediate', '#FFFF00',
+                            'Basic', '#0000FF',
+                            'Inadequate', '#FF0000',
+                            '#FF0000'
+                        ],
+                        'circle-radius': 6,
+                        'circle-stroke-width': 2,
+                        'circle-stroke-color': '#ffffff'
+                    }
+                });
+
+                map.on('mousemove', (event) => {
+                    const features = map.queryRenderedFeatures(event.point, {
+                        layers: ['ipclevel']
+                    });
+
+                    if (features.length) {
+                        const feature = features[0];
+                        const lga = feature.properties.LGA;
+
+                        if (lgaSummaries[lga]) {
+                            const summary = lgaSummaries[lga];
+                            const gradientBar = createGradientBar(summary);
+
+                            const infoHtml = `
+                                <h3>${lga}</h3>
+                                <p><strong>Total Facilities:</strong> ${summary.totalFacilities}</p>
+                                <p><strong>Type of Facilities:</strong> ${summary.typeDetails}</p>
+                                <p><strong>Level of Facilities:</strong> ${summary.levelDetails}</p>
+                                <div class="gradient-bar">${gradientBar}</div>
+                                <p><strong>IPC Readiness Levels:</strong></p>
+                                <p><strong>Advanced:</strong> ${summary.ipcPercentages.Advanced.toFixed(2)}%</p>
+                                <p><strong>Intermediate:</strong> ${summary.ipcPercentages.Intermediate.toFixed(2)}%</p>
+                                <p><strong>Basic:</strong> ${summary.ipcPercentages.Basic.toFixed(2)}%</p>
+                                <p><strong>Inadequate:</strong> ${summary.ipcPercentages.Inadequate.toFixed(2)}%</p>
+                            `;
+
+                            document.getElementById('pd').innerHTML = infoHtml;
+                        } else {
+                            document.getElementById('pd').innerHTML = '<p>No data available for this area.</p>';
+                        }
+                    } else {
+                        document.getElementById('pd').innerHTML = '<p>Hover over an area!</p>';
+                    }
+                });
+            });
+
+        function calculateLGASummaries(data) {
+            const summaries = {};
+
+            data.features.forEach(feature => {
+                const properties = feature.properties;
+                const lga = properties.LGA;
+                const ipcReadiness = properties["Level of IPC Readiness"];
+                const facilityType = properties["Type of Facility"];
+                const facilityLevel = properties["Level of Facility"];
+
+                if (!summaries[lga]) {
+                    summaries[lga] = {
+                        totalFacilities: 0,
+                        types: {},
+                        levels: {},
+                        ipcCounts: {
+                            Advanced: 0,
+                            Intermediate: 0,
+                            Basic: 0,
+                            Inadequate: 0
+                        }
+                    };
+                }
+
+                const summary = summaries[lga];
+                summary.totalFacilities++;
+                summary.types[facilityType] = (summary.types[facilityType] || 0) + 1;
+                summary.levels[facilityLevel] = (summary.levels[facilityLevel] || 0) + 1;
+                summary.ipcCounts[ipcReadiness]++;
+            });
+
+            for (const lga in summaries) {
+                const summary = summaries[lga];
+                const total = summary.totalFacilities;
+                summary.ipcPercentages = {
+                    Advanced: (summary.ipcCounts.Advanced / total) * 100,
+                    Intermediate: (summary.ipcCounts.Intermediate / total) * 100,
+                    Basic: (summary.ipcCounts.Basic / total) * 100,
+                    Inadequate: (summary.ipcCounts.Inadequate / total) * 100
+                };
+
+                summary.typeDetails = Object.keys(summary.types).map(type => `${type} (${summary.types[type]})`).join(', ');
+                summary.levelDetails = Object.keys(summary.levels).map(level => `${level} (${summary.levels[level]})`).join(', ');
+            }
+
+            return summaries;
+        }
+
+        function createGradientBar(summary) {
+            const gradientBarHtml = `
+                <div class="advanced" style="flex: ${summary.ipcPercentages.Advanced}; background-color: #00FF00;"></div>
+                <div class="intermediate" style="flex: ${summary.ipcPercentages.Intermediate}; background-color: #FFFF00;"></div>
+                <div class="basic" style="flex: ${summary.ipcPercentages.Basic}; background-color: #0000FF;"></div>
+                <div class="inadequate" style="flex: ${summary.ipcPercentages.Inadequate}; background-color: #FF0000;"></div>
+            `;
+            return gradientBarHtml;
+        }
+    </script>
+</body>
+
+</html>

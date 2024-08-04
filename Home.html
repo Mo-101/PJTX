@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.css">
+    <link rel="stylesheet" href="./resources/ol.css">
+    <link rel="stylesheet" href="resources/fontawesome-all.min.css">
+    <link rel="stylesheet" href="./resources/ol-layerswitcher.css">
+    <link rel="stylesheet" href="./resources/qgis2web.css">
+    <link rel="stylesheet" href="./resources/OSMBuildings-OL3.js">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 80%;
+            /* Adjusted to leave room for the sidebar */
+        }
+
+        .container {
+            display: flex;
+            align-items: flex-start;
+            height: 100vh;
+        }
+
+        #nav-menu {
+            position: fixed;
+            align-items: center;
+            top: 0;
+            left: 0;
+            height: auto;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 12px;
+            border-radius: 0;
+            box-shadow: 4px 4px 6px rgba(7, 6, 6, 0.438);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: rgb(156, 15, 15);
+            max-width: calc(100% - 20px);
+            overflow: hidden;
+        }
+
+        #nav-items {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-item {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            background-color: rgba(7, 1, 1, 0.219);
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: yellow;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .nav-item:active {
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            transform: translateY(0);
+        }
+
+        #legend {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-center;
+            gap: 5px;
+            background-color: rgba(7, 1, 1, 0.219);
+            padding: 0px;
+            border-radius: 5px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            color: white;
+            /* Changed font color to white */
+            position: relative;
+            top: 0px;
+            right: 20%;
+        }
+
+        #legend-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ff07ac;
+            margin-bottom: 0px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-marker {
+            width: 40px;
+            height: 30px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .legend-marker:hover {
+            transform: scale(1.2);
+        }
+
+        #features {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            overflow-y: scroll;
+            width: 20%;
+            margin-left: 80%;
+            font-family: sans-serif;
+            background-color: #032835;
+            background-image: linear-gradient(to top, #071972, #100541, #12033b, #220c55, #b90b34, #076780);
+            box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            backdrop-filter: blur(5px);
+            opacity: 4;
+            overflow-x: hidden;
+            z-index: 1000;
+        }
+
+        #features::-webkit-scrollbar {
+            display: none;
+        }
+
+        #features h3,
+        #features p {
+            font-size: 12px;
+            color: rgb(252, 252, 249);
+        }
+
+        .facility-item {
+            cursor: pointer;
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .facility-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .facility-item h3 {
+            margin: 0;
+            padding: 5px 0;
+            font-size: 16px;
+            color: #ffffff;
+        }
+
+        .facility-item p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #ffffff;
+        }
+
+        #filters {
+            position: fixed;
+            bottom: 0%;
+            left: 0%;
+            right: 0%;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 17px;
+            border-radius: 0;
+            box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: left;
+            gap: 10px;
+            overflow: hidden;
+        }
+
+        .filter-group {
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .filter-group h4 {
+            margin: 0;
+            padding: 0;
+            font-size: 12px;
+            color: white;
+            text-align: center;
+        }
+
+        button {
+            padding: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: rgb(14, 1, 1);
+            cursor: pointer;
+            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.1);
+            font-size: 12px;
+            white-space: nowrap;
+            backdrop-filter: blur(1px);
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        button.active {
+            background: rgba(255, 255, 255, 0.3);
+            color: #000;
+        }
+
+        .private,
+        .public,
+        .primary,
+        .secondary,
+        .advanced,
+        .intermediate,
+        .basic,
+        .inadequate {
+            background-color: #07077e46;
+            color: #f7f7fa;
+            font-weight: bold;
+        }
+
+        .public,
+        .private {
+            color: #c908b9;
+        }
+
+        .primary,
+        .secondary {
+            color: #caeb0b;
+        }
+
+        .advanced,
+        .intermediate,
+        .basic,
+        .inadequate {
+            color: #f5f3f3;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1em;
+        }
+
+        .header .controls {
+            display: flex;
+            gap: 5px;
+        }
+
+        .header .controls button {
+            padding: 5px;
+            border: none;
+            background-color: #e0aaff;
+            color: #000;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .header .controls button:hover {
+            background-color: #c77dff;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .header_section {
+            background-color: #0e1114;
+            padding: 10px 0;
+        }
+
+        section {
+            padding: 5px 10px;
+            line-height: 25px;
+            justify-content: left;
+            border-bottom: 1px solid #180202;
+            opacity: 0.45;
+            font-size: 10px;
+            color: white;
+        }
+
+        section.active {
+            opacity: 1;
+        }
+
+        section:last-child {
+            border-bottom: none;
+            margin-bottom: 200px;
+            opacity: 0.5;
+        }
+
+        #sidebar {
+            z-index: 1000;
+            overflow-y: auto;
+            max-height: 80vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <div id="nav-menu">
+        <div id="nav-items">
+            <a href="Home.html" class="nav-item">Home</a>
+            <a href="HeatMap.html" class="nav-item">Heat Map</a>
+        </div>
+        <div id="legend">
+            <div id="legend-title">Legend</div>
+            <div class="legend-item">
+                <img src="markers/1.svg" alt="Green marker" class="legend-marker"> Advanced
+            </div>
+            <div class="legend-item">
+                <img src="markers/2.svg" alt="Blue marker" class="legend-marker"> Intermediate
+            </div>
+            <div class="legend-item">
+                <img src="markers/3.svg" alt="Purple marker" class="legend-marker"> Basic
+            </div>
+            <div class="legend-item">
+                <img src="markers/4.svg" alt="Red marker" class="legend-marker"> Inadequate
+            </div>
+        </div>
+    </div>
+    <div id="features">
+        <h2 id="sidebar-title">IPC Readiness Level Summary</h2>
+        <!-- Sections will be dynamically generated here -->
+    </div>
+    <div id="sidebar-content"></div>
+    <div id="filters">
+        <div class="filter-group">
+            <h4>Type: HFC</h4>
+            <button class="private" data-filter="type_of_facility" data-value="Private"
+                onclick="toggleFilter(this)">Private</button>
+            <button class="public" data-filter="type_of_facility" data-value="Public"
+                onclick="toggleFilter(this)">Public</button>
+        </div>
+        <div class="filter-group">
+            <h4>Category: HFC</h4>
+            <button class="primary" data-filter="category_of_facility" data-value="Primary"
+                onclick="toggleFilter(this)">Primary</button>
+            <button class="secondary" data-filter="category_of_facility" data-value="Secondary"
+                onclick="toggleFilter(this)">Secondary</button>
+        </div>
+        <div class="filter-group">
+            <h4>IPC Readiness Level</h4>
+            <button class="advanced" data-filter="level_of_ipc_preparedness" data-value="Advanced"
+                onclick="toggleFilter(this)">Advanced</button>
+            <button class="intermediate" data-filter="level_of_ipc_preparedness" data-value="Intermediate"
+                onclick="toggleFilter(this)">Intermediate</button>
+            <button class="basic" data-filter="level_of_ipc_preparedness" data-value="Basic"
+                onclick="toggleFilter(this)">Basic</button>
+            <button class="inadequate" data-filter="level_of_ipc_preparedness" data-value="Inadequate"
+                onclick="toggleFilter(this)">Inadequate</button>
+        </div>
+    </div>
+
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.5.1/mapbox-gl.js"></script>
+    <script src="resources/OSMBuildings-OL3.js"></script>
+    <script src="js/Autolinker.min.js"></script>
+    <script src="js/qgis2web_expressions.js"></script>
+    <script src="resources/OSMBuildings-OL3.js"></script>
+    <script src="data/HFC_01.geojson"></script>
+
+
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiYWthbmltbzEiLCJhIjoiY2x4czNxbjU2MWM2eTJqc2gwNGIwaWhkMSJ9.jSwZdyaPa1dOHepNU5P71g';
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: {
+                "version": 8,
+                "sources": {
+                    "google-hybrid": {
+                        "type": "raster",
+                        "tiles": [
+                            "https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+                        ],
+                        "tileSize": 258,
+                        "attribution": "© Google"
+                    },
+                    "mapbox": {
+                        "type": "vector",
+                        "url": "mapbox://mapbox.mapbox-streets-v8"
+                    }
+                },
+                "layers": [
+                    {
+                        "id": "google-hybrid",
+                        "type": "raster",
+                        "source": "google-hybrid",
+                        "minzoom": 0,
+                        "maxzoom": 24
+                    }
+                ]
+            },
+            center: [3.9050605, 7.38691745],
+            zoom: 10,
+            pitch: 45,
+            bearing: 0,
+            attributionControl: false
+        });
+
+        map.on('style.load', () => {
+            // Add DEM source and set terrain
+            map.addSource('mapbox-dem', {
+                'type': 'raster-dem',
+                'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+                'tileSize': 512,
+                'maxzoom': 14
+            });
+            map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
+
+        });
+        map.on('load', () => {
+            const svgFiles = [
+                'Images/Frame 1.svg',
+                'Images/Frame 2.svg',
+                'Images/Frame 3.svg',
+                'Images/Frame 4.svg',
+                'Images/Frame 5.svg',
+                'Images/Frame 6.svg',
+                'Images/Frame 7.svg',
+                'Images/Frame 8.svg',
+            ];
+
+            const buildings = [
+                { lng: 3.9050605, lat: 7.38691745, svgIndex: 0 },
+                { lng: 3.9052605, lat: 7.38691745, svgIndex: 1 },
+            ];
+
+            function loadSVGAsTexture(svgFilePath, callback) {
+                const loader = new THREE.TextureLoader();
+                loader.load(
+                    svgFilePath,
+                    (texture) => {
+                        console.log(`Loaded texture from ${svgFilePath}`);
+                        callback(texture);
+                    },
+                    undefined,
+                    (error) => {
+                        console.error(`Error loading texture from ${svgFilePath}:`, error);
+                    }
+                );
+            }
+
+            function add3DModelToMap(coordinates, texture) {
+                map.addLayer({
+                    id: `3d-model-${coordinates.lng}-${coordinates.lat}`,
+                    type: 'custom',
+                    renderingMode: '3d',
+                    onAdd: function (map, gl) {
+                        this.camera = new THREE.Camera();
+                        this.scene = new THREE.Scene();
+
+                        const geometry = new THREE.PlaneGeometry(10, 10);
+                        const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+                        this.mesh = new THREE.Mesh(geometry, material);
+                        this.scene.add(this.mesh);
+
+                        this.renderer = new THREE.WebGLRenderer({
+                            canvas: map.getCanvas(),
+                            context: gl,
+                        });
+
+                        this.renderer.autoClear = false;
+                    },
+                    render: function (gl, matrix) {
+                        const rotationX = new THREE.Matrix4().makeRotationAxis(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+
+                        const modelTransform = {
+                            translateX: coordinates.lng,
+                            translateY: coordinates.lat,
+                            translateZ: 0,
+                            rotateX: Math.PI / 2,
+                            rotateY: 0,
+                            rotateZ: 0,
+                            scale: 5,
+                        };
+
+                        const modelMatrix = new THREE.Matrix4()
+                            .makeTranslation(modelTransform.translateX, modelTransform.translateY, modelTransform.translateZ)
+                            .scale(new THREE.Vector3(modelTransform.scale, -modelTransform.scale, modelTransform.scale))
+                            .multiply(rotationX);
+
+                        const l = new THREE.Matrix4().fromArray(matrix);
+                        this.camera.projectionMatrix = l.multiply(modelMatrix);
+
+                        this.renderer.state.reset();
+                        this.renderer.render(this.scene, this.camera);
+                        this.map.triggerRepaint();
+                    }
+                });
+            }
+
+            buildings.forEach(building => {
+                loadSVGAsTexture(svgFiles[building.svgIndex], texture => {
+                    console.log(`Adding 3D model at coordinates (${building.lng}, ${building.lat})`);
+                    add3DModelToMap(building, texture);
+                });
+            });
+        });
+
+
+        var allFacilities = [
+            { id: "ibadan-health-facilities", lga: "IBADAN (ALL LGAs)", name: "IBADAN HEALTH FACILITIES", latitude: 7.39043179, longitude: 3.9050612, type: "IPC READINESS LEVEL", category: "HEALTH FACILITIES", ipcReadiness: "All Levels" },
+            { id: "alafia-hospital", lga: "Ibadan North West", name: "Alafia Hospital", latitude: 7.39886, longitude: 3.88817, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "oyo-state-college-of-nursing-clinic", lga: "Ibadan North West", name: "Oyo State College of Nursing Clinic", latitude: 7.40985, longitude: 3.87514, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "iwo-road-tuberculosis-and-leprosy-clinic", lga: "Ibadan North East", name: "Iwo Road Tuberculosis and Leprosy Clinic", latitude: 7.404238, longitude: 3.939794, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "tz-hospital", lga: "Ibadan North East", name: "TZ Hospital", latitude: 7.38722, longitude: 3.94194, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "adeoye-memorial-specialist-hospital", lga: "Ibadan North West", name: "Adeoye Memorial Specialist Hospital", latitude: 7.39402, longitude: 3.88687, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "gentle-hearts-global-harvest-medical-center", lga: "Ibadan North West", name: "Gentle Hearts Global Harvest Medical Center", latitude: 7.39663, longitude: 3.8838, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "irefin-primary-healthcare-center", lga: "Ibadan North East", name: "Irefin Primary Healthcare Center", latitude: 7.37361, longitude: 3.90972, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "oje-primary-healthcare-center", lga: "Ibadan North East", name: "Oje Primary Healthcare Center", latitude: 7.37361, longitude: 3.90972, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "oke-badan-primary-healthcare-center", lga: "Ibadan North East", name: "Oke'Badan Primary Healthcare Center", latitude: 7.37361, longitude: 3.90972, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "ti-oluwani-hospital", lga: "Ibadan North East", name: "Ti Oluwani Hospital", latitude: 7.38056, longitude: 3.91528, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "elyon-specialist-hospital", lga: "Ibadan North East", name: "Elyon Specialist Hospital", latitude: 7.40389, longitude: 3.94194, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "ori-eru-primary-health-center", lga: "Ibadan North West", name: "Ori-Eru Primary Health Center", latitude: 7.38169, longitude: 3.89149, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "naomi-medical-center", lga: "Ibadan North West", name: "Naomi Medical Center", latitude: 7.38761, longitude: 3.88758, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "ayeye-primary-health-center", lga: "Ibadan North West", name: "Ayeye Primary Health Center", latitude: 7.38226, longitude: 3.89533, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "oniyanrin-health-center", lga: "Ibadan North West", name: "Oniyanrin Health Center", latitude: 7.38973, longitude: 3.89324, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "origbegi", lga: "Ibadan North West", name: "Origbegi", latitude: 7.38257, longitude: 3.89293, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "oke-adu-primary-health-center", lga: "Ibadan North East", name: "Oke-Adu Primary Health Center", latitude: 7.38083, longitude: 3.91528, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "bembow-medical-center", lga: "Ibadan North East", name: "Bembow Medical Center", latitude: 7.381858, longitude: 3.915402, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "tofunmi-medical-center", lga: "Ibadan North East", name: "Tofunmi Medical Center", latitude: 7.40954, longitude: 3.929657, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "ibadan-central-hospital", lga: "Ibadan North East", name: "Ibadan Central Hospital", latitude: 7.392136, longitude: 3.930991, type: "Public", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "iyanu-ayo-clinic-and-maternity", lga: "Ibadan North East", name: "Iyanu Ayo Clinic and Maternity", latitude: 7.381837, longitude: 3.915402, type: "Private", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "manna-medical-center", lga: "Ibadan North East", name: "Manna Medical Center", latitude: 7.39194, longitude: 3.93083, type: "Private", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "molly-specialist-hospital", lga: "Ibadan North East", name: "Molly Specialist Hospital", latitude: 7.409574, longitude: 3.929654, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "desire-specialist-hospital", lga: "Ibadan North", name: "Desire Specialist Hospital", latitude: 7.38826, longitude: 3.90935, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "sango-primary-health-center", lga: "Ibadan North", name: "Sango Primary Health Center", latitude: 7.42729, longitude: 3.8933, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "oke-are-phc", lga: "Ibadan North", name: "Oke-Are PHC", latitude: 7.37883, longitude: 3.89529, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "ibadan-polytechnic", lga: "Ibadan North", name: "Ibadan Polytechnic", latitude: 7.43323, longitude: 3.87996, type: "Public", category: "", ipcReadiness: "Basic" },
+            { id: "basorun-primary-health-center", lga: "Ibadan North", name: "Basorun Primary Health Center", latitude: 7.41347, longitude: 3.93191, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "sabo-primary-health-center", lga: "Ibadan North", name: "Sabo Primary Health Center", latitude: 7.40252, longitude: 3.88509, type: "Public", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "agbowo-primary-health-center", lga: "Ibadan North", name: "Agbowo Primary Health Center", latitude: 7.44732, longitude: 3.91219, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "oke-itunnu-primary-health-center", lga: "Ibadan North", name: "Oke-Itunnu Primary Health Center", latitude: 7.41827, longitude: 3.88452, type: "Public", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "mokola-health-center", lga: "Ibadan North", name: "Mokola Health Center", latitude: 7.40489, longitude: 3.89373, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "ago-tapa-phc", lga: "Ibadan North", name: "Ago Tapa PHC", latitude: 7.40258, longitude: 3.8924, type: "Public", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "hamdala-hospital", lga: "Ibadan North", name: "Hamdala Hospital", latitude: 7.44579, longitude: 3.91372, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "jubilee-hospital", lga: "Ibadan North", name: "Jubilee Hospital", latitude: 7.2901, longitude: 3.90197, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "redeemers-health-center", lga: "Ibadan North", name: "Redeemer's Health Center", latitude: 7.41726, longitude: 3.90244, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "mak-clinic-and-maternity-home", lga: "Ibadan North", name: "Mak Clinic and Maternity Home", latitude: 7.4137, longitude: 3.91382, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "total-family-hospital", lga: "Ibadan North", name: "Total Family Hospital", latitude: 7.41557, longitude: 3.92996, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "king-david-hospital", lga: "Ibadan North", name: "King David Hospital", latitude: 7.44937, longitude: 3.91853, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "secretariat-staff-clinic-agodi", lga: "Ibadan North", name: "Secretariat Staff Clinic, Agodi", latitude: 7.4118, longitude: 3.90798, type: "Public", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "highland-specialist-hospital", lga: "Ibadan North", name: "Highland Specialist Hospital", latitude: 7.39355, longitude: 3.90491, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "gold-cross-medical-clinic", lga: "Ibadan North", name: "Gold Cross Medical Clinic", latitude: 7.38824, longitude: 3.90398, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "mokola-hilltop-hospital", lga: "Ibadan North", name: "Mokola Hilltop Hospital", latitude: 7.40318, longitude: 3.89387, type: "Private", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "medical-practitioner-services-limited-1", lga: "Ibadan North", name: "Medical Practitioner Services Limited 1", latitude: 7.4006, longitude: 3.89209, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "badejoko-memorial-specialist-hospital", lga: "Ibadan North", name: "Badejoko Memorial Specialist Hospital", latitude: 7.41157, longitude: 3.89221, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "foremost-base-hospital", lga: "Ibadan North", name: "Foremost Base Hospital", latitude: 7.41718, longitude: 3.8941, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "police-hospital", lga: "Ibadan North West", name: "Police Hospital", latitude: 7.39929, longitude: 3.86928, type: "Public", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "omiyale-health-post", lga: "Ibadan South East", name: "Omiyale Health Post", latitude: 7.3723, longitude: 3.8984, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "montana-medical-center", lga: "Ibadan South East", name: "Montana Medical Center", latitude: 7.3459, longitude: 3.8787, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "royal-immaculate-hospital", lga: "Ibadan South East", name: "Royal Immaculate Hospital", latitude: 7.342, longitude: 3.8731, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "continental-medical-center", lga: "Ibadan South East", name: "Continental Medical Center", latitude: 7.3459, longitude: 3.8787, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "temilade-convalescent-maternity-home", lga: "Ibadan South East", name: "Temilade Convalescent Maternity Home", latitude: 7.3747, longitude: 3.89745, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "oriaje-health-post", lga: "Ibadan South East", name: "Oriaje Health Post", latitude: 7.3581, longitude: 3.90017, type: "Public", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "beloved-maternity-and-child-welfare-clinic", lga: "Ibadan South East", name: "Beloved Maternity and Child Welfare Clinic", latitude: 7.3458, longitude: 3.9157, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "orita-aperin-primary-health-center", lga: "Ibadan South East", name: "Orita Aperin Primary Health Center", latitude: 7.3635, longitude: 3.9197, type: "Public", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "newday-hospital", lga: "Ibadan South East", name: "Newday Hospital", latitude: 7.3451, longitude: 3.9126, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "molas-clinic", lga: "Ibadan South East", name: "Molas Clinic", latitude: 7.35319, longitude: 3.90299, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "gladys-hill-hospital", lga: "Ibadan South East", name: "Glady's Hill Hospital", latitude: 7.335, longitude: 3.89189, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "t-and-k-health-center", lga: "Ibadan South East", name: "T and K Health Center", latitude: 7.3511, longitude: 3.90034, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "algon-phc", lga: "Ibadan South East", name: "Algon PHC", latitude: 7.3462, longitude: 3.8929, type: "Private", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "abdullah-medical-center", lga: "Ibadan South East", name: "Abdullah Medical center", latitude: 7.3508, longitude: 3.9107, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "boluwaji-primary-health-center", lga: "Ibadan South East", name: "Boluwaji Primary Health Center", latitude: 7.4362, longitude: 3.7343, type: "Public", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "elekuro-health-center", lga: "Ibadan South East", name: "Elekuro Health Center", latitude: 7.3673, longitude: 3.914, type: "Public", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "st-mary-catholic-hospital", lga: "Ibadan South East", name: "ST. Mary Catholic Hospital", latitude: 7.35531, longitude: 3.911, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "kobomoje-health-center", lga: "Ibadan South East", name: "Kobomoje Health Center", latitude: 7.3675, longitude: 3.8947, type: "Private", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "balaro-primary-health-center", lga: "Ibadan South East", name: "Balaro Primary Health Center", latitude: 7.3546, longitude: 3.9056, type: "Public", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "iyana-court-health-center", lga: "Ibadan South East", name: "Iyana Court Health Center", latitude: 7.3594, longitude: 3.90414, type: "Public", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "owode-health-center", lga: "Ibadan South West", name: "Owode Health Center", latitude: 7.34843, longitude: 3.91307, type: "Public", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "funminiyi-child-and-welfare-clinic", lga: "Ibadan North West", name: "Funminiyi Child and Welfare Clinic", latitude: 7.41333, longitude: 3.86299, type: "Public", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "lanark-specialist-hospital", lga: "Ibadan South West", name: "Lanark Specialist Hospital", latitude: 7.358, longitude: 3.8654, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "likeminds-fetal-hospital", lga: "Ibadan South West", name: "Likeminds Fetal Hospital", latitude: 7.363, longitude: 3.8805, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "maternal-and-child-health", lga: "Ibadan South West", name: "Maternal and Child Health", latitude: 7.40285, longitude: 3.92524, type: "Public", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "aged-and-widow-clinic", lga: "Ibadan South West", name: "Aged and Widow Clinic", latitude: 7.37666, longitude: 3.86861, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "oluyole-primary-health-center", lga: "Ibadan South West", name: "Oluyole Primary Health Center", latitude: 7.3348, longitude: 3.8923, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "oke-ayo-primary-health-center", lga: "Ibadan South West", name: "Oke Ayo Primary Health Center", latitude: 7.374, longitude: 3.8515, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "adifare-primary-health-center", lga: "Ibadan South West", name: "Adifare Primary Health Center", latitude: 7.3865, longitude: 3.8266, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "government-college-primary-health-center", lga: "Ibadan South West", name: "Government College Primary Health Center", latitude: 7.40285, longitude: 3.92524, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "odo-ona-primary-health-center", lga: "Ibadan South West", name: "Odo ona Primary Health Center", latitude: 7.3812, longitude: 3.8517, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "bode-primary-health-center", lga: "Ibadan South West", name: "Bode Primary Health Center", latitude: 7.3633, longitude: 3.8894, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "kososi-primary-health-center", lga: "Ibadan South West", name: "Kososi Primary Health Center", latitude: 7.37, longitude: 3.8923, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "living-grace-hospital", lga: "Ibadan South West", name: "Living Grace Hospital", latitude: 7.39327, longitude: 3.9343, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "odinjo-primary-health-center", lga: "Ibadan South West", name: "Odinjo Primary Health Center", latitude: 7.3563, longitude: 3.9144, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "raji-akande-primary-health-center", lga: "Ibadan South West", name: "Raji Akande Primary Health Center", latitude: 7.3657, longitude: 3.90354, type: "Public", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "felele-primary-health-center", lga: "Ibadan South West", name: "Felele Primary Health Center", latitude: 7.34509, longitude: 3.88884, type: "Public", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "lanioka-health-center", lga: "Ibadan South West", name: "Lanioka Health Center", latitude: 7.36975, longitude: 3.90216, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "royal-clinic", lga: "Ibadan North", name: "Royal Clinic", latitude: 7.41021, longitude: 3.89178, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "samonda-primary-health-center", lga: "Ibadan North", name: "Samonda Primary Health Center", latitude: 7.43211, longitude: 3.90456, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "anuoluwapo-hospital", lga: "Ibadan North", name: "Anuoluwapo Hospital", latitude: 7.41798, longitude: 3.89051, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "best-care-hospital", lga: "Ibadan North", name: "Best Care Hospital", latitude: 7.36507, longitude: 3.91414, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "comfort-medical-center", lga: "Ibadan North", name: "Comfort Medical Center", latitude: 7.39823, longitude: 3.91097, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "gods-grace", lga: "Ibadan North", name: "God's Grace", latitude: 7.39036, longitude: 3.90267, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "elewura-primary-health-center", lga: "Ibadan South West", name: "Elewura Primary Health Center", latitude: 7.36651, longitude: 3.86095, type: "Public", category: "Primary", ipcReadiness: "Inadequate" },
+            { id: "koseunti-primary-health-center", lga: "Ibadan North West", name: "Koseunti Primary Health Center", latitude: 7.42242, longitude: 3.83948, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "central-bank-of-nigeria-clinic", lga: "Ibadan North West", name: "Central Bank of Nigeria Clinic", latitude: 7.39627, longitude: 3.8768, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "onireke-health-center", lga: "Ibadan North West", name: "Onireke Health Center", latitude: 7.39235, longitude: 3.87909, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "nigeria-railway-clinic", lga: "Ibadan North West", name: "Nigeria Railway Clinic", latitude: 7.38854, longitude: 3.87371, type: "Public", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "tony-hospital", lga: "Ibadan North West", name: "Tony Hospital", latitude: 7.36322, longitude: 3.43186, type: "Private", category: "Secondary", ipcReadiness: "Inadequate" },
+            { id: "jericho-specialist-hospital", lga: "Ibadan South West", name: "Jericho Specialist Hospital", latitude: 7.39338, longitude: 3.87303, type: "Public", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "kejide-hospital-limited", lga: "Ibadan South West", name: "Kejide Hospital Limited", latitude: 7.35421, longitude: 3.92028, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "the-vine-hospital-and-maternity-care", lga: "Ibadan South West", name: "The Vine Hospital and Maternity Care", latitude: 7.3645, longitude: 3.85039, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "zoe-specialist-mission-hospital", lga: "Ibadan South West", name: "Zoe Specialist Mission Hospital", latitude: 7.36511, longitude: 3.84823, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "aleshinloye-primary-health-center", lga: "Ibadan South West", name: "Aleshinloye Primary Health Center", latitude: 7.38855, longitude: 3.87098, type: "Public", category: "Primary", ipcReadiness: "Advanced" },
+            { id: "sharo-corner-primary-health-center", lga: "Ibadan South West", name: "Sharo Corner Primary Health Center", latitude: 7.37574, longitude: 3.87851, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "zenith-care-hospital", lga: "Ibadan South West", name: "Zenith Care Hospital", latitude: 7.36517, longitude: 3.84192, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "molete-primary-health-center", lga: "Ibadan South West", name: "Molete Primary Health Center", latitude: 7.3572, longitude: 3.8883, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "ibadan-anglican-diocese-hospital", lga: "Ibadan South West", name: "Ibadan Anglican Diocese Hospital", latitude: 7.35639, longitude: 3.88633, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "omotayo-maternity-home", lga: "Ibadan South West", name: "Omotayo Maternity Home", latitude: 7.37625, longitude: 3.8811, type: "Private", category: "Primary", ipcReadiness: "Inadequate" },
+            { id: "akere-phc", lga: "Ibadan South West", name: "Akere PHC", latitude: 7.37655, longitude: 3.89489, type: "Public", category: "Primary", ipcReadiness: "Inadequate" },
+            { id: "jolaleke-specialist-hospital", lga: "Ibadan South West", name: "Jolaleke Specialist Hospital", latitude: 7.36044, longitude: 3.86988, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "isale-osi-phc", lga: "Ibadan South West", name: "Isale Osi PHC", latitude: 7.37388, longitude: 3.89109, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "akuro-phc", lga: "Ibadan South West", name: "Akuro PHC", latitude: 7.37594, longitude: 3.88682, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "agbokojo-phc", lga: "Ibadan South West", name: "Agbokojo PHC", latitude: 7.37948, longitude: 3.85583, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "chief-shepard-hospital-and-mission-hospital", lga: "Ibadan South West", name: "Chief Shepard Hospital and Mission Hospital", latitude: 7.37753, longitude: 3.94704, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "oyo-state-college-of-health-sciences-clinic", lga: "Ibadan North West", name: "Oyo State College of Health Sciences Clinic", latitude: 7.40815, longitude: 3.8619, type: "Public", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "lilly-hospital", lga: "Ibadan North West", name: "Lilly Hospital", latitude: 7.41552, longitude: 3.8615, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "police-hospital", lga: "Ibadan North West", name: "Police Hospital", latitude: 7.40814, longitude: 3.86519, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "best-western-victory-medical-center", lga: "Ibadan North West", name: "Best Western Victory Medical Center", latitude: 7.42068, longitude: 3.8722, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "sam-xeusos-denorah-specialist", lga: "Ibadan North West", name: "Sam Xeusos Denorah Specialist", latitude: 7.4175, longitude: 3.86259, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "unity-medical-center", lga: "Ibadan North West", name: "Unity Medical Center", latitude: 7.41142, longitude: 3.86648, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "lagelu-youth-friendly-center", lga: "Ibadan North East", name: "Lagelu Youth Friendly Center", latitude: 7.385272, longitude: 3.909037, type: "Private", category: "Primary", ipcReadiness: "Inadequate" },
+            { id: "alawaye-hospital-and-nursing-home", lga: "Ibadan North East", name: "Alawaye Hospital and Nursing Home", latitude: 7.401939, longitude: 3.903326, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "ibadan-city-hospital", lga: "Ibadan North East", name: "Ibadan City Hospital", latitude: 7.401939, longitude: 3.903326, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "awoye-ajike-health-center-and-maternity-home", lga: "Ibadan North East", name: "Awoye Ajike Health Center and Maternity Home", latitude: 7.387313, longitude: 3.90764, type: "Private", category: "Primary", ipcReadiness: "Intermediate" },
+            { id: "kola-adekola-hospital", lga: "Ibadan North East", name: "Kola Adekola Hospital", latitude: 7.38427, longitude: 3.90665, type: "Private", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "orita-challenge-primary-health-clinic", lga: "Ibadan South East", name: "Orita Challenge Primary Health Clinic", latitude: 7.339199, longitude: 3.87206, type: "Public", category: "Primary", ipcReadiness: "Basic" },
+            { id: "bethel-specialist-hospital", lga: "Ibadan North", name: "Bethel Specialist Hospital", latitude: 7.41347, longitude: 3.89469, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+            { id: "broadcasting-corporation-of-oyo-state", lga: "Ibadan North East", name: "Broadcasting Corporation of Oyo State", latitude: 7.411968, longitude: 3.930618, type: "Public", category: "Secondary", ipcReadiness: "Basic" },
+            { id: "skyline-specialist-hospital", lga: "Ibadan North East", name: "Skyline Specialist Hospital", latitude: 7.401661, longitude: 3.939237, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "patnas-specialist-hospital", lga: "Ibadan North East", name: "Patnas Specialist Hospital", latitude: 7.410365, longitude: 3.927155, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "agugu-central-hospital", lga: "Ibadan North East", name: "Agugu Central Hospital", latitude: 7.382301, longitude: 3.922054, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "new-dawn-hospital-and-maternity-center", lga: "Ibadan North East", name: "New Dawn Hospital and Maternity Center", latitude: 7.39174, longitude: 3.939586, type: "Private", category: "Secondary", ipcReadiness: "Intermediate" },
+            { id: "oni-wumi-medical-center", lga: "Ibadan North East", name: "Oni-wumi Medical Center", latitude: 7.401679, longitude: 3.93924, type: "Private", category: "Secondary", ipcReadiness: "Advanced" },
+
+        ];
+
+        var colors = {
+            "Advanced": "blue",
+            "Intermediate": "green",
+            "Basic": "yellow",
+            "Inadequate": "red",
+        };
+
+        let filters = {
+            type_of_facility: [],
+            category_of_facility: [],
+            level_of_ipc_preparedness: []
+        };
+
+        var markers = [];
+        var inadequateIconUrl = 'markers/4.svg'; // Relative path to the inadequate SVG icon
+        var advancedIconUrl = 'markers/1.svg'; // Relative path to the advanced SVG icon
+        var intermediateIconUrl = 'markers/2.svg'; // Relative path to the intermediate SVG icon
+        var basicIconUrl = 'markers/3.svg'; // Relative path to the basic SVG icon
+        var otherIconUrl = 'markers/be.svg'; // Relative path to the other SVG icon
+
+        function createMarkers(facilities) {
+            // Remove existing markers
+            markers.forEach(marker => marker.remove());
+
+            // Create new markers
+            markers = facilities.map(function (facility) {
+                var markerElement = document.createElement('div');
+
+                if (facility.ipcReadiness === 'Inadequate') {
+                    // Custom SVG marker for inadequate facilities
+                    markerElement.style.backgroundImage = 'url(' + inadequateIconUrl + ')';
+                } else if (facility.ipcReadiness === 'Advanced') {
+                    // Custom SVG marker for advanced facilities
+                    markerElement.style.backgroundImage = 'url(' + advancedIconUrl + ')';
+                } else if (facility.ipcReadiness === 'Intermediate') {
+                    // Custom SVG marker for intermediate facilities
+                    markerElement.style.backgroundImage = 'url(' + intermediateIconUrl + ')';
+                } else if (facility.ipcReadiness === 'Basic') {
+                    // Custom SVG marker for basic facilities
+                    markerElement.style.backgroundImage = 'url(' + basicIconUrl + ')';
+                } else {
+                    // Custom SVG marker for other facilities
+                    markerElement.style.backgroundImage = 'url(' + otherIconUrl + ')';
+                }
+
+                // Set common styles for all custom markers
+                markerElement.style.width = '50px'; // Adjust the width as needed
+                markerElement.style.height = '50px'; // Adjust the height as needed
+                markerElement.style.backgroundSize = 'contain';
+
+                var marker = new mapboxgl.Marker(markerElement)
+                    .setLngLat([facility.longitude, facility.latitude])
+                    .setPopup(new mapboxgl.Popup({ offset: 25 })
+                        .setHTML('<h3>' + facility.name + '</h3><p>' + facility.lga + '</p><p>' + facility.type + ' - ' + facility.category + '</p><p>IPC Readiness: ' + facility.ipcReadiness + '</p>'))
+                    .addTo(map);
+
+                return marker;
+            });
+        }
+
+        // Example usage
+        createMarkers(allFacilities);
+
+        map.addControl(new mapboxgl.NavigationControl());
+
+        var chapters = allFacilities.reduce((acc, facility) => {
+            acc[facility.id] = {
+                center: [facility.longitude, facility.latitude],
+                zoom: 19,
+                bearing: 27,
+                pitch: 45,
+                type: facility.type,
+                category: facility.category,
+                ipcReadiness: facility.ipcReadiness
+            };
+            return acc;
+        }, {});
+
+        function generateFacilitySections(facilities) {
+            return facilities.map(facility => `
+                <section id="${facility.id}" class="facility-item" onclick="flyToFacility('${facility.id}')">
+                    <h3>${facility.name}</h3>
+                    <p>
+                        LGA: ${facility.lga}<br>
+                        Name: ${facility.name}<br>
+                        Type: ${facility.type}<br>
+                        Category: ${facility.category}<br>
+                        Level of IPC Readiness: ${facility.ipcReadiness}<br>
+                    </p>
+                </section>
+            `).join('');
+        }
+
+        document.getElementById('features').innerHTML = generateFacilitySections(allFacilities);
+
+        let activeChapterName = 'ibadan-health-facilities';
+
+        function setActiveChapter(chapterName) {
+            if (chapterName === activeChapterName) return;
+
+            map.flyTo(chapters[chapterName]);
+
+            document.getElementById(chapterName).classList.add('active');
+            document.getElementById(activeChapterName).classList.remove('active');
+
+            activeChapterName = chapterName;
+        }
+
+        function flyToFacility(id) {
+            var facility = allFacilities.find(facility => facility.id === id);
+            if (facility) {
+                map.flyTo({
+                    center: [facility.longitude, facility.latitude],
+                    zoom: 19,
+                    bearing: 27,
+                    pitch: 45
+                });
+                setActiveChapter(id);
+            }
+        }
+
+        function toggleFilter(button) {
+            let filterCategory = button.getAttribute('data-filter');
+            let filterValue = button.getAttribute('data-value');
+
+            button.classList.toggle('active');
+
+            if (filters[filterCategory].includes(filterValue)) {
+                filters[filterCategory] = filters[filterCategory].filter(value => value !== filterValue);
+            } else {
+                filters[filterCategory].push(filterValue);
+            }
+
+            updateSidebar();
+            applyFilters();
+        }
+
+        function updateSidebar() {
+            let sidebar = document.getElementById('sidebar-content');
+            sidebar.innerHTML = '';
+
+            for (let category in filters) {
+                if (filters[category].length > 0) {
+                    let categoryElement = document.createElement('div');
+                    categoryElement.innerHTML = `<h4>${category.replace(/_/g, ' ')}</h4>`;
+                    filters[category].forEach(value => {
+                        let valueElement = document.createElement('div');
+                        valueElement.textContent = value;
+                        categoryElement.appendChild(valueElement);
+                    });
+                    sidebar.appendChild(categoryElement);
+                }
+            }
+        }
+
+        function applyFilters() {
+            let filteredFacilities = allFacilities.filter(facility => {
+                return Object.keys(filters).every(category => {
+                    if (filters[category].length === 0) {
+                        return true;
+                    } else {
+                        if (category === 'type_of_facility') {
+                            return filters[category].includes(facility.type);
+                        } else if (category === 'category_of_facility') {
+                            return filters[category].includes(facility.category);
+                        } else if (category === 'level_of_ipc_preparedness') {
+                            return filters[category].includes(facility.ipcReadiness);
+                        }
+                        return true;
+                    }
+                });
+            });
+
+            document.getElementById('features').innerHTML = generateFacilitySections(filteredFacilities);
+            createMarkers(filteredFacilities);
+        }
+
+        function isElementOnScreen(id) {
+            const element = document.getElementById(id);
+            const bounds = element.getBoundingClientRect();
+            return bounds.top < window.innerHeight && bounds.bottom > 0;
+        }
+
+        window.onscroll = () => {
+            for (const chapterName in chapters) {
+                if (isElementOnScreen(chapterName)) {
+                    setActiveChapter(chapterName);
+                    break;
+                }
+            }
+        };
+
+        addLegend();
+    </script>
+
+</body>
+
+</html>

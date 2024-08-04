@@ -4,7 +4,7 @@ var styleJSON = {
     "name": "qgis2web export",
     "pitch": 0,
     "light": {
-        "intensity": 0.4
+        "intensity": 0.2
     },
     "sources": {
         "GoogleSatelliteHybrid_0": {
